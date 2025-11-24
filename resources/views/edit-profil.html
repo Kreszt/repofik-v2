@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Edit Profil </title>
+    <link rel="stylesheet" href="components.css">
+    <link rel="stylesheet" href="edit-profil.css">
+</head>
+
+<body>
+    <div class="navbar">
+        <div class="logo">
+            <img src="./assets/bars-white.svg" alt="bars">
+            REPOFIK+
+        </div>
+        <a href="dashboard.html" id="button-dropdown" class="button-kembali">
+            <!-- <img class="chevron" src="./assets/chevron-left-white.png" alt="chevron down"> -->
+            Kembali
+
+        </a>
+
+    </div> <!-- navbar end -->
+    <div class="container container-user-profile ">
+        <div class="modal-white-topbar">
+            <div class="text">
+                Edit Profil
+            </div>
+            <div class="circles-wrapper">
+                <div class="dead-circle"></div>
+                <div class="minimize-circle"></div>
+                <div id="close-circle" class="close-circle"></div>
+            </div>
+
+        </div>
+        <!-- add circular photo -->
+        <!-- display user_id, username, jenis_user, status_admin, and ganti password-->
+        <!-- User Info will be displayed here -->
+        <div class="container-user-profile-bottom">
+            <img src="" alt="" id="user-profile-image">
+            <h1 id="user-info"></h1>
+            <button class="button-primary" id="ganti-password">Ganti Password</button>
+            <button class="button-primary" id="ganti-foto-profil">Ganti Foto Profil</button>
+        </div>
+    </div>
+</body>
+<script src="checkRoleId.js"></script>
+<script>
+    // edit-profil.js
+    const username = "John Doe";
+    role_id = 7;
+    const role = checkRoleId(role_id); //from checkRoleId.js
+    const status_admin = "Admin";
+
+    const userInfo = document.getElementById("user-info");
+    userInfo.innerHTML = `${username} | ${role} | ${status_admin} `;
+
+    const userProfileImage = document.getElementById("user-profile-image");
+    userProfileImage.setAttribute("src", "./assets/default-user-placeholder.png");
+
+    const buttonGantiPassword = document.getElementById("ganti-password");
+    buttonGantiPassword.addEventListener("click", () => {
+        window.alert("button-ganti-password has been clicked");
+        // password change modal to be made here
+    });
+
+    const buttonGantiFotoProfil = document.getElementById("ganti-foto-profil");
+    buttonGantiFotoProfil.addEventListener("click", () => {
+        window.alert("button-ganti-foto-profil has been clicked");
+        // input type file here
+    });
+
+</script>
+
+</html>

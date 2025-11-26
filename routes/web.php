@@ -25,7 +25,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/force-delete', [DashboardController::class, 'forceDelete'])->name('document.force-delete');
     
     // Download Bulk (POST karena kirim array ID)
-    Route::post('/dashboard/download-bulk', [DashboardController::class, 'downloadBulk'])->name('document.download.bulk');
+    Route::get('/dashboard/download-bulk', [DashboardController::class, 'downloadBulk'])->name('document.download.bulk');
+    // Route::post('/dashboard/download-bulk', [DashboardController::class, 'downloadBulk'])->name('document.download.bulk');
     
     // Download Single (GET karena link biasa)
     Route::get('/dashboard/download/{id}', [DashboardController::class, 'downloadSingle'])->name('document.download.single');

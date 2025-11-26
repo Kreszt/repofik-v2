@@ -49,35 +49,6 @@ export default function Dashboard(props) {
         else document.documentElement.classList.remove('dark');
     }, [darkMode]);
 
-    // [TRICK] DOWNLOAD BULK (ZIP) VIA NATIVE FORM
-    const submitNativeForm = (url, ids = []) => {
-        // Cek ketersediaan document (aman untuk SSR/Preview)
-        if (typeof document === 'undefined') return;
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = url;
-        
-        // Ambil CSRF Token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if(csrfToken) {
-            const hiddenToken = document.createElement('input');
-            hiddenToken.type = 'hidden'; hiddenToken.name = '_token'; hiddenToken.value = csrfToken;
-            form.appendChild(hiddenToken);
-        }
-
-        // Masukkan ID file
-        ids.forEach(id => {
-            const input = document.createElement('input');
-            input.type = 'hidden'; input.name = 'ids[]'; input.value = id;
-            form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit(); 
-        document.body.removeChild(form);
-    };
-
     // [HANDLER] Filter Otomatis
     const handleFilter = (key, value) => {
         if(key === 'search') setSearchQuery(value);
@@ -156,8 +127,15 @@ export default function Dashboard(props) {
     };
 
     const handleBulkDownload = () => {
-        submitNativeForm(route('document.download.bulk'), selectedIds);
-        setSelectedIds([]);
+        if (selectedIds.length > 0) {
+            // Buat URL dengan parameter query string untuk metode GET
+            const url = new URL(route('document.download.bulk'), window.location.origin);
+            selectedIds.forEach(id => url.searchParams.append('ids[]', id));
+
+            // Redirect ke URL untuk memulai download
+            window.location.href = url.toString();
+            setSelectedIds([]); // Kosongkan seleksi setelah download
+        }
     };
 
     const handleRestore = (ids) => {
@@ -219,14 +197,27 @@ export default function Dashboard(props) {
                         <li className="px-6 text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Menu Utama</li>
                         
                         {/* FOLDER UTAMA */}
-                        <li>
-                            <Link href={route('dashboard')} className="block">
-                                <div className={`w-full text-left px-6 py-3 text-sm font-medium transition-all duration-200 flex items-center gap-3 ${!isTrashMode ? 'bg-orange-100 text-emerald-900 border-r-4 border-emerald-600 dark:bg-emerald-900/30 dark:text-orange-200 dark:border-orange-400' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400'}`}>
-                                    <span>📂</span> 
-                                    {roleId === 10 ? 'Semua Dokumen' : `Folder ${currentRoleName}`}
-                                </div>
-                            </Link>
-                        </li>
+                        {roleId === 10 ? (
+                            // Tampilan untuk Superadmin
+                            Object.entries(props.allRoles).map(([roleId, roleName]) => (
+                                <li key={roleId}>
+                                    <Link href={route('dashboard', { directory: roleName })} className="block">
+                                        <div className={`w-full text-left px-6 py-3 text-sm font-medium transition-all duration-200 flex items-center gap-3 ${filters.directory === roleName && !isTrashMode ? 'bg-orange-100 text-emerald-900 border-r-4 border-emerald-600 dark:bg-emerald-900/30 dark:text-orange-200 dark:border-orange-400' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400'}`}>
+                                            <span>📂</span> {roleName.charAt(0).toUpperCase() + roleName.slice(1)}
+                                        </div>
+                                    </Link>
+                                </li>
+                            ))
+                        ) : (
+                            // Tampilan untuk User Biasa
+                            <li>
+                                <Link href={route('dashboard')} className="block">
+                                    <div className={`w-full text-left px-6 py-3 text-sm font-medium transition-all duration-200 flex items-center gap-3 ${!isTrashMode ? 'bg-orange-100 text-emerald-900 border-r-4 border-emerald-600 dark:bg-emerald-900/30 dark:text-orange-200 dark:border-orange-400' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400'}`}>
+                                        <span>📂</span> {`Folder ${currentRoleName}`}
+                                    </div>
+                                </Link>
+                            </li>
+                        )}
 
                         {/* FOLDER SAMPAH */}
                         <li>

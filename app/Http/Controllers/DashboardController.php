@@ -18,20 +18,21 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user(); 
+        $user = Auth::user();
 
         // [2] FILTER DATA
         $search = $request->input('search');
-        $startDate = $request->input('start_date'); 
-        $endDate = $request->input('end_date');     
-        $isTrash = $request->boolean('trash'); 
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $isTrash = $request->boolean('trash');
+        $directory = $request->input('directory'); // Filter direktori
 
         // [3] QUERY BUILDER
         $query = Document::query()->with('user'); // Eager load data uploader
 
         // Mode Sampah vs Mode Aktif
         if ($isTrash) {
-            $query->onlyTrashed(); 
+            $query->onlyTrashed();
         }
 
         // Filter Pencarian
@@ -45,25 +46,37 @@ class DashboardController extends Controller
         }
 
         // [4] ISOLASI DATA (DATA SECURITY)
-        // Superadmin (Role 10) -> Bisa lihat semua.
-        // User Lain -> Hanya bisa lihat file milik sendiri (user_id).
-        if ($user->role_id != 10) {
+        if ($user->role_id == 10) {
+            // Superadmin (Role 10) -> Bisa lihat semua, filter per direktori jika ada
+            $query->when($directory, function ($q, $directory) {
+                $q->where('lokasi_file', 'like', "documents/{$directory}/%");
+            });
+        } else {
+            // User Lain -> Hanya bisa lihat file milik sendiri (user_id).
             $query->where('user_id', $user->user_id);
         }
 
         // Eksekusi Query
         $documents = $query->orderBy('last_updated', 'desc')
-            ->paginate(12) 
-            ->withQueryString(); 
+            ->paginate(12)
+            ->withQueryString();
+
+        // Data untuk Sidebar
+        $roleFolders = [
+            1 => 'dosen', 2 => 'mahasiswa', 3 => 'bumn', 4 => 'persuratan',
+            5 => 'kemahasiswaan', 6 => 'akademik', 7 => 'keuangan',
+            8 => 'prodi', 9 => 'lab'
+        ];
 
         return Inertia::render('Dashboard', [
             'documents' => $documents,
-            'filters' => $request->only(['search', 'trash', 'start_date', 'end_date']),
-            'auth' => [ 'user' => $user ], // Mengirim data user asli ke React
+            'filters' => $request->only(['search', 'trash', 'start_date', 'end_date', 'directory']),
+            'auth' => ['user' => $user],
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),
-            ]
+            ],
+            'allRoles' => $roleFolders, // Kirim data folder ke frontend
         ]);
     }
 
